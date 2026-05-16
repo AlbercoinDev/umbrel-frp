@@ -1,0 +1,19 @@
+services:
+  frp_manager:
+    build: .
+    container_name: frp_manager
+    network_mode: host
+    volumes:
+      - "${APP_DATA_DIR}:/app/data"
+      - "/etc/frp:/etc/frp"
+    restart: unless-stopped
+
+  frpc_client:
+    image: fatedier/frpc:v0.54.0
+    container_name: frpc_client
+    network_mode: host
+    depends_on:
+      - frp_manager
+    volumes:
+      - "/etc/frp/frpc.toml:/etc/frp/frpc.toml"
+    restart: unless-stopped

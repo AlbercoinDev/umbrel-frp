@@ -1,0 +1,16 @@
+manifestVersion: 1
+id: frp-client
+category: Networking
+name: FRP Client
+version: "1.0.0"
+tagline: Dynamic tunnel manager
+description: >-
+  Manages FRP (Fast Reverse Proxy) tunnels to connect your Umbrel
+  behind NAT/CGNAT to a VPS with a public IP. Configure and sync
+  port mappings through a clean web interface.
+developer: Umbrel FRP
+website: https://github.com/fatedier/frp
+dependencies: []
+repo: https://github.com/fatedier/frp
+support: https://github.com/fatedier/frp
+port: 1234

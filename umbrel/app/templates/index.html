@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRP Client</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #111214;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 720px; width: 100%; }
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .subtitle {
+    color: #888;
+    font-size: 0.875rem;
+    margin-bottom: 2rem;
+  }
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+  .status-badge.online {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+  .status-badge.offline {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+  .card {
+    background: #1a1b1e;
+    border: 1px solid #2a2b30;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .form-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .form-row input {
+    flex: 1;
+    min-width: 140px;
+  }
+  input, button {
+    background: #25262b;
+    border: 1px solid #36373d;
+    border-radius: 8px;
+    padding: 0.625rem 0.875rem;
+    color: #e0e0e0;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus {
+    border-color: #6366f1;
+  }
+  button {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover { background: #5558e6; }
+  button.danger {
+    background: transparent;
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+  button.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #2a2b30;
+    font-size: 0.875rem;
+  }
+  th {
+    color: #888;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  td:last-child, th:last-child { text-align: right; }
+  .empty-state {
+    text-align: center;
+    color: #666;
+    padding: 2rem 0;
+    font-size: 0.875rem;
+  }
+  .msg {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    display: none;
+  }
+  .msg.error {
+    display: block;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #f87171;
+  }
+  .msg.success {
+    display: block;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #4ade80;
+  }
+  .setup-form { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .setup-form input { flex: 1; min-width: 200px; }
+  @media (max-width: 480px) {
+    .form-row { flex-direction: column; }
+    .form-row input { min-width: unset; }
+    .setup-form { flex-direction: column; }
+    .setup-form input { min-width: unset; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>FRP Client</h1>
+  <p class="subtitle">Manage your reverse proxy tunnels</p>
+
+  <span class="status-badge {{ 'online' if configured else 'offline' }}">
+    {{ 'Connected to VPS' if configured else 'Not configured' }}
+  </span>
+
+  <div id="msg"></div>
+
+  {% if not configured %}
+  <div class="card" id="setup-card">
+    <h2>VPS Connection</h2>
+    <div class="setup-form">
+      <input type="text" id="vps-domain" placeholder="vps.tudominio.com" value="{{ vps_domain }}">
+      <input type="password" id="vps-token" placeholder="Security token">
+      <button onclick="saveSetup()">Save</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Add Proxy</h2>
+    <div class="form-row">
+      <input type="text" id="proxy-name" placeholder="Name (e.g. bitcoin-p2p)">
+      <input type="number" id="local-port" placeholder="Local port" min="1" max="65535">
+      <input type="number" id="remote-port" placeholder="Remote port" min="1" max="65535">
+      <button onclick="addProxy()">Add</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Active Proxies</h2>
+    {% if proxies %}
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Local</th>
+          <th>Remote</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for proxy in proxies %}
+        <tr>
+          <td><strong>{{ proxy.name }}</strong></td>
+          <td>{{ proxy.local_port }}</td>
+          <td>{{ proxy.remote_port }}</td>
+          <td>
+            <button class="danger" onclick="deleteProxy('{{ proxy.name }}')">Delete</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No proxies configured. Add one above.</div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + type;
+  setTimeout(() => { el.className = 'msg'; }, 5000);
+}
+
+function saveSetup() {
+  const domain = document.getElementById('vps-domain').value.trim();
+  const token = document.getElementById('vps-token').value.trim();
+  if (!domain || !token) { showMsg('Both fields are required', 'error'); return; }
+  fetch('/setup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vps_domain: domain, token: token }),
+  })
+  .then(r => r.json().then(d => ({ status: r.status, body: d })))
+  .then(({ status, body }) => {
+    if (status === 200) { location.reload(); }
+    else { showMsg(body.detail || 'Error saving config', 'error'); }
+  })
+  .catch(() => showMsg('Network error', 'error'));
+}
+
+function addProxy() {
+  const name = document.getElementById('proxy-name').value.trim();
+  const localPort = parseInt(document.getElementById('local-port').value, 10);
+  const remotePort = parseInt(document.getElementById('remote-port').value, 10);
+  if (!name || isNaN(localPort) || isNaN(remotePort)) {
+    showMsg('All fields are required', 'error'); return;
+  }
+  fetch('/proxy/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, local_port: localPort, remote_port: remotePort }),
+  })
+  .then(r => r.json().then(d => ({ status: r.status, body: d })))
+  .then(({ status, body }) => {
+    if (status === 200) {
+      showMsg(body.message, 'success');
+      document.getElementById('proxy-name').value = '';
+      document.getElementById('local-port').value = '';
+      document.getElementById('remote-port').value = '';
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showMsg(body.detail || 'Error adding proxy', 'error');
+    }
+  })
+  .catch(() => showMsg('Network error', 'error'));
+}
+
+function deleteProxy(name) {
+  if (!confirm('Delete proxy "' + name + '"?')) return;
+  fetch('/proxy/delete/' + encodeURIComponent(name), {
+    method: 'POST',
+  })
+  .then(r => r.json().then(d => ({ status: r.status, body: d })))
+  .then(({ status, body }) => {
+    if (status === 200) {
+      showMsg(body.message, 'success');
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showMsg(body.detail || 'Error deleting proxy', 'error');
+    }
+  })
+  .catch(() => showMsg('Network error', 'error'));
+}
+</script>
+</body>
+</html>
