@@ -1,16 +1,53 @@
 manifestVersion: 1
-id: frp-client
-category: Networking
+id: albercoin-store-frp-client
 name: FRP Client
+tagline: Túneles dinámicos FRP hacia tu VPS
+category: networking
 version: "1.0.0"
-tagline: Dynamic tunnel manager
 description: >-
-  Manages FRP (Fast Reverse Proxy) tunnels to connect your Umbrel
-  behind NAT/CGNAT to a VPS with a public IP. Configure and sync
-  port mappings through a clean web interface.
-developer: Umbrel FRP
-website: https://github.com/fatedier/frp
+  FRP Client te permite exponer servicios de tu Umbrel en internet a través de
+  un túnel FRP (Fast Reverse Proxy) hacia tu propio VPS con IP pública.
+
+
+  A diferencia de soluciones como WireGuard, FRP es más ligero y no requiere
+  una red virtual completa — cada túnel es un proxy TCP individual. Ideal para
+  exponer servicios específicos como Bitcoin P2P, Electrs, o cualquier app
+  que funcione por TCP.
+
+
+  ✦ Interfaz web limpia y oscura estilo Umbrel
+
+  ✦ CRUD completo de proxies con validación de puertos
+
+  ✦ Sincronización automática con el VPS vía HTTPS
+
+  ✦ Escritura atómica de frpc.toml — sin corrupción de datos
+
+  ✦ Encriptación forzada (transport.useEncryption) en cada túnel
+
+  ✦ network_mode: host — sin bridges, ideal para servicios de red
+
+
+  Requisitos:
+
+  - Un VPS con Ubuntu/Debian y IP pública fija
+
+  - Un dominio apuntando al VPS (con puertos 80/443 abiertos)
+
+  - Tener instalado FRP Server (frps) y el agente VPS en el servidor
+
+
+  Instalación rápida del servidor VPS:
+
+  sudo bash vps/install.sh
+developer: AlbercoinDev
+website: https://github.com/AlbercoinDev/umbrel-frp
 dependencies: []
-repo: https://github.com/fatedier/frp
-support: https://github.com/fatedier/frp
+repo: https://github.com/AlbercoinDev/umbrel-frp
+support: https://github.com/AlbercoinDev/umbrel-frp/issues
 port: 1234
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: AlbercoinDev
