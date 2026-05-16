@@ -2,6 +2,7 @@ manifestVersion: 1
 id: albercoin-store-frp-client
 name: FRP Client
 tagline: Túneles dinámicos FRP hacia tu VPS
+icon: web/icon.svg
 category: networking
 version: "1.0.0"
 description: >-
