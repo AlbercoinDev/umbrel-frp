@@ -27,6 +27,8 @@ description: >-
 
   ✦ network_mode: host — sin bridges, ideal para servicios de red
 
+  ✦ Contenedor único — frpc como subprocess, sin comunicación entre contenedores
+
 
   Requisitos:
 
