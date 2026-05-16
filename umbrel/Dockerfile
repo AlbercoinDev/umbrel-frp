@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --no-cache-dir \
     fastapi>=0.100.0 \
-    uvicorn[standard]>=0.23.0 \
+    uvicorn>=0.23.0 \
     requests>=2.31.0 \
     jinja2>=3.1.0 \
     python-multipart>=0.0.6

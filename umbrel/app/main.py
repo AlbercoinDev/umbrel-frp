@@ -20,6 +20,16 @@ FRPC_CONFIG_PATH = Path("/etc/frp/frpc.toml")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
+@app.on_event("startup")
+async def _ensure_frpc_config():
+    FRPC_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if FRPC_CONFIG_PATH.is_dir():
+        FRPC_CONFIG_PATH.rmdir()
+    if not FRPC_CONFIG_PATH.exists():
+        config = _load_config()
+        _atomic_write_frpc(config)
+
+
 class Proxy(BaseModel):
     name: str = Field(
         ...,
